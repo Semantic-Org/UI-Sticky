@@ -1,0 +1,18 @@
+{
+  "name": "semantic/sticky",
+  "description": "Single component release of sticky",
+  "homepage": "http://www.semantic-ui.com",
+  "authors": [{
+    "name": "Jack Lukic",
+    "email": "jacklukic@gmail.com",
+    "web": "http://www.jacklukic.com",
+    "role": "Creator"
+  }],
+  "keywords": ["semantic", "ui", "css", "framework"],
+  "license": "MIT",
+  "dependencies": {
+    "jquery": "x.x.x"
+  },
+  "main": "sticky.js",
+  "version": "1.0.0"
+}
