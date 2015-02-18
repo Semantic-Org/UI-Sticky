@@ -125,10 +125,6 @@ $.fn.sticky = function(parameters) {
           var
             context = $context[0]
           ;
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> a0b13d25ca59f3e7539bb63bbbeca352113be430
           if(settings.observeChanges) {
             if('MutationObserver' in window) {
               observer = new MutationObserver(function(mutations) {
@@ -148,28 +144,6 @@ $.fn.sticky = function(parameters) {
               });
               module.debug('Setting up mutation observer', observer);
             }
-<<<<<<< HEAD
-=======
-=======
-          if('MutationObserver' in window) {
-            observer = new MutationObserver(function(mutations) {
-              clearTimeout(module.timer);
-              module.timer = setTimeout(function() {
-                module.verbose('DOM tree modified, updating sticky menu');
-                module.refresh();
-              }, 200);
-            });
-            observer.observe(element, {
-              childList : true,
-              subtree   : true
-            });
-            observer.observe(context, {
-              childList : true,
-              subtree   : true
-            });
-            module.debug('Setting up mutation observer', observer);
->>>>>>> 953090a217d4c95dd3c5b32b4beafd8609cbe1bd
->>>>>>> a0b13d25ca59f3e7539bb63bbbeca352113be430
           }
         },
 
@@ -254,11 +228,7 @@ $.fn.sticky = function(parameters) {
               }
             };
             module.set.containerSize();
-<<<<<<< HEAD
             module.set.size();
-=======
-            module.set.length;
->>>>>>> a0b13d25ca59f3e7539bb63bbbeca352113be430
             module.stick();
             module.debug('Caching element positions', module.cache);
           }
@@ -771,10 +741,6 @@ $.fn.sticky.settings = {
   verbose        : false,
   performance    : false,
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> a0b13d25ca59f3e7539bb63bbbeca352113be430
   pushing        : false,
   context        : false,
   scrollContext  : window,
@@ -782,16 +748,6 @@ $.fn.sticky.settings = {
   bottomOffset   : 0,
 
   observeChanges : true,
-<<<<<<< HEAD
-=======
-=======
-  pushing       : false,
-  context       : false,
-  scrollContext : window,
-  offset        : 0,
-  bottomOffset  : 0,
->>>>>>> 953090a217d4c95dd3c5b32b4beafd8609cbe1bd
->>>>>>> a0b13d25ca59f3e7539bb63bbbeca352113be430
 
   onReposition   : function(){},
   onScroll       : function(){},
