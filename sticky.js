@@ -125,6 +125,7 @@ $.fn.sticky = function(parameters) {
           var
             context = $context[0]
           ;
+<<<<<<< HEAD
           if(settings.observeChanges) {
             if('MutationObserver' in window) {
               observer = new MutationObserver(function(mutations) {
@@ -144,6 +145,25 @@ $.fn.sticky = function(parameters) {
               });
               module.debug('Setting up mutation observer', observer);
             }
+=======
+          if('MutationObserver' in window) {
+            observer = new MutationObserver(function(mutations) {
+              clearTimeout(module.timer);
+              module.timer = setTimeout(function() {
+                module.verbose('DOM tree modified, updating sticky menu');
+                module.refresh();
+              }, 200);
+            });
+            observer.observe(element, {
+              childList : true,
+              subtree   : true
+            });
+            observer.observe(context, {
+              childList : true,
+              subtree   : true
+            });
+            module.debug('Setting up mutation observer', observer);
+>>>>>>> 953090a217d4c95dd3c5b32b4beafd8609cbe1bd
           }
         },
 
@@ -228,7 +248,7 @@ $.fn.sticky = function(parameters) {
               }
             };
             module.set.containerSize();
-            module.set.size();
+            module.set.length;
             module.stick();
             module.debug('Caching element positions', module.cache);
           }
@@ -741,6 +761,7 @@ $.fn.sticky.settings = {
   verbose        : false,
   performance    : false,
 
+<<<<<<< HEAD
   pushing        : false,
   context        : false,
   scrollContext  : window,
@@ -748,6 +769,13 @@ $.fn.sticky.settings = {
   bottomOffset   : 0,
 
   observeChanges : true,
+=======
+  pushing       : false,
+  context       : false,
+  scrollContext : window,
+  offset        : 0,
+  bottomOffset  : 0,
+>>>>>>> 953090a217d4c95dd3c5b32b4beafd8609cbe1bd
 
   onReposition   : function(){},
   onScroll       : function(){},

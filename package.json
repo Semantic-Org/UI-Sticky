@@ -1,6 +1,10 @@
 {
   "name": "semantic-ui-sticky",
+<<<<<<< HEAD
   "version": "1.0.0-beta",
+=======
+  "version": "1.7.2",
+>>>>>>> 953090a217d4c95dd3c5b32b4beafd8609cbe1bd
   "title": "Semantic UI - Sticky",
   "description": "Single component release of sticky",
   "homepage": "http://www.semantic-ui.com",
@@ -8,7 +12,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git@github.com:Semantic-Org/UI-Sticky.git"
+    "url": "https://github.com/Semantic-Org/UI-Sticky.git"
   },
   "bugs": {
     "url": "https://github.com/Semantic-Org/Semantic-UI/issues"
