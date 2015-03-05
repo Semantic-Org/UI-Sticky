@@ -1,5 +1,5 @@
 /*!
- * # Semantic UI 1.10.4 - Sticky
+ * # Semantic UI 1.11.0 - Sticky
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -32,7 +32,9 @@ module.exports = function(parameters) {
   $allModules
     .each(function() {
       var
-        settings              = $.extend(true, {}, _module.exports.settings, parameters),
+        settings              = ( $.isPlainObject(parameters) )
+          ? $.extend(true, {}, _module.exports.settings, parameters)
+          : $.extend({}, _module.exports.settings),
 
         className             = settings.className,
         namespace             = settings.namespace,
@@ -64,35 +66,14 @@ module.exports = function(parameters) {
       module      = {
 
         initialize: function() {
-          if(settings.context) {
-            $context = $(settings.context);
-          }
-          else {
-            $context = $container;
-          }
-          if($context.length === 0) {
-            module.error(error.invalidContext, settings.context, $module);
-            return;
-          }
+
+          module.determineContext();
           module.verbose('Initializing sticky', settings, $container);
+
           module.save.positions();
+          module.checkErrors();
+          module.bind.events();
 
-          // error conditions
-          if( module.is.hidden() ) {
-            module.error(error.visible, $module);
-          }
-          if(module.cache.element.height > module.cache.context.height) {
-            module.reset();
-            module.error(error.elementSize, $module);
-            return;
-          }
-
-          $window
-            .on('resize' + eventNamespace, module.event.resize)
-          ;
-          $scroll
-            .on('scroll' + eventNamespace, module.event.scroll)
-          ;
           if(settings.observeChanges) {
             module.observeChanges();
           }
@@ -113,15 +94,9 @@ module.exports = function(parameters) {
           if(observer) {
             observer.disconnect();
           }
-          $window
-            .off('resize' + eventNamespace, module.event.resize)
-          ;
-          $scroll
-            .off('scroll' + eventNamespace, module.event.scroll)
-          ;
-          $module
-            .removeData(moduleNamespace)
-          ;
+          $window.off('resize' + eventNamespace, module.event.resize);
+          $scroll.off('scroll' + eventNamespace, module.event.scroll);
+          $module.removeData(moduleNamespace);
         },
 
         observeChanges: function() {
@@ -145,6 +120,37 @@ module.exports = function(parameters) {
               subtree   : true
             });
             module.debug('Setting up mutation observer', observer);
+          }
+        },
+
+        determineContext: function() {
+          if(settings.context) {
+            $context = $(settings.context);
+          }
+          else {
+            $context = $container;
+          }
+          if($context.length === 0) {
+            module.error(error.invalidContext, settings.context, $module);
+            return;
+          }
+        },
+
+        checkErrors: function() {
+          if( module.is.hidden() ) {
+            module.error(error.visible, $module);
+          }
+          if(module.cache.element.height > module.cache.context.height) {
+            module.reset();
+            module.error(error.elementSize, $module);
+            return;
+          }
+        },
+
+        bind: {
+          events: function() {
+            $window.on('resize' + eventNamespace, module.event.resize);
+            $scroll.on('scroll' + eventNamespace, module.event.scroll);
           }
         },
 
@@ -179,9 +185,7 @@ module.exports = function(parameters) {
               $element = $('<div/>'),
               element = $element.get()
             ;
-            $element
-              .addClass(className.supported)
-            ;
+            $element.addClass(className.supported);
             return($element.css('position').match('sticky'));
           }
         },
@@ -205,8 +209,9 @@ module.exports = function(parameters) {
                 height : $module.outerHeight()
               },
               context = {
-                offset: $context.offset(),
-                height: $context.outerHeight()
+                offset        : $context.offset(),
+                height        : $context.outerHeight(),
+                bottomPadding : parseInt($context.css('padding-bottom'), 10)
               }
             ;
             module.cache = {
@@ -223,9 +228,10 @@ module.exports = function(parameters) {
                 bottom : element.offset.top + element.height
               },
               context: {
-                top    : context.offset.top,
-                height : context.height,
-                bottom : context.offset.top + context.height
+                top           : context.offset.top,
+                height        : context.height,
+                bottomPadding : context.bottomPadding,
+                bottom        : context.offset.top + context.height - context.bottomPadding
               }
             };
             module.set.containerSize();
@@ -311,7 +317,9 @@ module.exports = function(parameters) {
             else {
               module.debug('Settings container size', module.cache.context.height);
               if( Math.abs($container.height() - module.cache.context.height) > 5) {
-                $container.height(module.cache.context.height);
+                $container.css({
+                  height: module.cache.context.height
+                });
               }
             }
           },
@@ -391,7 +399,12 @@ module.exports = function(parameters) {
           if(elementVisible) {
 
             if( module.is.initialPosition() ) {
-              if(scroll.top >= element.top) {
+              if(scroll.top >= context.bottom) {
+                console.log(scroll.top, context.bottom);
+                module.debug('Element bottom of container');
+                module.bindBottom();
+              }
+              else if(scroll.top >= element.top) {
                 module.debug('Element passed, fixing element to page');
                 module.fixTop();
               }
@@ -457,7 +470,7 @@ module.exports = function(parameters) {
           $module
             .css('left' , '')
             .css('top' , '')
-            .css('bottom' , '')
+            .css('margin-bottom' , '')
             .removeClass(className.fixed)
             .removeClass(className.bottom)
             .addClass(className.bound)
@@ -472,7 +485,7 @@ module.exports = function(parameters) {
           $module
             .css('left' , '')
             .css('top' , '')
-            .css('bottom' , '')
+            .css('margin-bottom' , module.cache.context.bottomPadding)
             .removeClass(className.fixed)
             .removeClass(className.top)
             .addClass(className.bound)
@@ -493,6 +506,7 @@ module.exports = function(parameters) {
           module.set.offset();
           $module
             .css('left', module.cache.element.left)
+            .css('bottom' , '')
             .removeClass(className.bound)
             .removeClass(className.bottom)
             .addClass(className.fixed)
@@ -506,6 +520,7 @@ module.exports = function(parameters) {
           module.set.offset();
           $module
             .css('left', module.cache.element.left)
+            .css('bottom' , '')
             .removeClass(className.bound)
             .removeClass(className.top)
             .addClass(className.fixed)
@@ -745,6 +760,7 @@ module.exports.settings = {
   pushing        : false,
   context        : false,
   scrollContext  : window,
+
   offset         : 0,
   bottomOffset   : 0,
 
