@@ -1,3 +1,7 @@
+### Version 1.11.7 - April 13, 2015
+
+- **Sticky** - Fixes errant `console.log` statement appearing in source
+
 ### Version 1.11.0 - March 3, 2015
 
 - **Sticky** - Fixed sticky position when page loads and content is below sticky content.

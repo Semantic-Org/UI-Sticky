@@ -1,5 +1,5 @@
 /*!
- * # Semantic UI 1.11.6 - Sticky
+ * # Semantic UI 1.11.7 - Sticky
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -399,7 +399,6 @@ module.exports = function(parameters) {
 
             if( module.is.initialPosition() ) {
               if(scroll.top >= context.bottom) {
-                console.log(scroll.top, context.bottom);
                 module.debug('Element bottom of container');
                 module.bindBottom();
               }
