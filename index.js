@@ -1,5 +1,5 @@
 /*!
- * # Semantic UI 1.11.7 - Sticky
+ * # Semantic UI 1.12.0 - Sticky
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -88,13 +88,18 @@ module.exports = function(parameters) {
         },
 
         destroy: function() {
-          module.verbose('Destroying previous module');
+          module.verbose('Destroying previous instance');
           module.reset();
           if(observer) {
             observer.disconnect();
           }
-          $window.off('resize' + eventNamespace, module.event.resize);
-          $scroll.off('scroll' + eventNamespace, module.event.scroll);
+          $window
+            .off('load' + eventNamespace, module.event.load)
+            .off('resize' + eventNamespace, module.event.resize)
+          ;
+          $scroll
+            .off('scrollchange' + eventNamespace, module.event.scrollchange)
+          ;
           $module.removeData(moduleNamespace);
         },
 
@@ -108,7 +113,7 @@ module.exports = function(parameters) {
               module.timer = setTimeout(function() {
                 module.verbose('DOM tree modified, updating sticky menu');
                 module.refresh();
-              }, 20);
+              }, 100);
             });
             observer.observe(element, {
               childList : true,
@@ -148,23 +153,36 @@ module.exports = function(parameters) {
 
         bind: {
           events: function() {
-            $window.on('resize' + eventNamespace, module.event.resize);
-            $scroll.on('scroll' + eventNamespace, module.event.scroll);
+            $window
+              .on('load' + eventNamespace, module.event.load)
+              .on('resize' + eventNamespace, module.event.resize)
+            ;
+            // pub/sub pattern
+            $scroll
+              .off('scroll' + eventNamespace)
+              .on('scroll' + eventNamespace, module.event.scroll)
+              .on('scrollchange' + eventNamespace, module.event.scrollchange)
+            ;
           }
         },
 
         event: {
+          load: function() {
+            module.verbose('Page contents finished loading');
+            requestAnimationFrame(module.refresh);
+          },
           resize: function() {
-            requestAnimationFrame(function() {
-              module.refresh();
-              module.stick();
-            });
+            module.verbose('Window resized');
+            requestAnimationFrame(module.refresh);
           },
           scroll: function() {
             requestAnimationFrame(function() {
-              module.stick();
-              settings.onScroll.call(element);
+              $scroll.trigger('scrollchange' + eventNamespace, $scroll.scrollTop() );
             });
+          },
+          scrollchange: function(event, scrollPosition) {
+            module.stick(scrollPosition);
+            settings.onScroll.call(element);
           }
         },
 
@@ -190,7 +208,7 @@ module.exports = function(parameters) {
         },
 
         save: {
-          scroll: function(scroll) {
+          lastScroll: function(scroll) {
             module.lastScroll = scroll;
           },
           positions: function() {
@@ -269,6 +287,7 @@ module.exports = function(parameters) {
               : Math.abs(parseInt($module.css('bottom'), 10)) || 0
             ;
           },
+
           elementScroll: function(scroll) {
             scroll = scroll || $scroll.scrollTop();
             var
@@ -276,14 +295,14 @@ module.exports = function(parameters) {
               window         = module.cache.window,
               delta          = module.get.scrollChange(scroll),
               maxScroll      = (element.height - window.height + settings.offset),
-              currentScroll  = module.get.currentElementScroll(),
-              possibleScroll = (currentScroll + delta),
+              elementScroll  = module.get.currentElementScroll(),
+              possibleScroll = (elementScroll + delta),
               elementScroll
             ;
             if(module.cache.fits || possibleScroll < 0) {
               elementScroll = 0;
             }
-            else if (possibleScroll > maxScroll ) {
+            else if(possibleScroll > maxScroll ) {
               elementScroll = maxScroll;
             }
             else {
@@ -314,8 +333,8 @@ module.exports = function(parameters) {
               $container = $module.offsetParent();
             }
             else {
-              module.debug('Settings container size', module.cache.context.height);
               if( Math.abs($container.height() - module.cache.context.height) > 5) {
+                module.debug('Context has padding, specifying exact height for container', module.cache.context.height);
                 $container.css({
                   height: module.cache.context.height
                 });
@@ -370,8 +389,9 @@ module.exports = function(parameters) {
           }
         },
 
-        stick: function() {
+        stick: function(scroll) {
           var
+            cachedPosition = scroll || $scroll.scrollTop(),
             cache          = module.cache,
             fits           = cache.fits,
             element        = cache.element,
@@ -381,11 +401,13 @@ module.exports = function(parameters) {
               ? settings.bottomOffset
               : settings.offset,
             scroll         = {
-              top    : $scroll.scrollTop() + offset,
-              bottom : $scroll.scrollTop() + offset + window.height
+              top    : cachedPosition + offset,
+              bottom : cachedPosition + offset + window.height
             },
             direction      = module.get.direction(scroll.top),
-            elementScroll  = module.get.elementScroll(scroll.top),
+            elementScroll  = (fits)
+              ? 0
+              : module.get.elementScroll(scroll.top),
 
             // shorthand
             doesntFit      = !fits,
@@ -393,7 +415,7 @@ module.exports = function(parameters) {
           ;
 
           // save current scroll for next run
-          module.save.scroll(scroll.top);
+          module.save.lastScroll(scroll.top);
 
           if(elementVisible) {
 
@@ -553,13 +575,12 @@ module.exports = function(parameters) {
           module.unbind();
           module.unfix();
           module.resetCSS();
+          module.remove.offset();
         },
 
         resetCSS: function() {
           $module
             .css({
-              top    : '',
-              bottom : '',
               width  : '',
               height : ''
             })

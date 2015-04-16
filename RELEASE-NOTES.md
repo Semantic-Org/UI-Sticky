@@ -1,3 +1,7 @@
+### Version 1.12.0 - April 13, 2015
+
+- **Sticky** - Adds sticky module from `2.x` branch. Sticky elements now use pub/sub with drastically improved performance. Sticky elements that do not fit on page will now scroll at the same speed as the page is scrolled instead of slower.
+
 ### Version 1.11.7 - April 13, 2015
 
 - **Sticky** - Fixes errant `console.log` statement appearing in source
