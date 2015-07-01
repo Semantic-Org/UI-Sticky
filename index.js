@@ -1,9 +1,9 @@
 /*!
- * # Semantic UI 1.12.3 - Sticky
+ * # Semantic UI 2.0.0 - Sticky
  * http://github.com/semantic-org/semantic-ui/
  *
  *
- * Copyright 2014 Contributorss
+ * Copyright 2015 Contributors
  * Released under the MIT license
  * http://opensource.org/licenses/MIT
  *
@@ -44,8 +44,8 @@ module.exports = function(parameters) {
 
         $module               = $(this),
         $window               = $(window),
-        $container            = $module.offsetParent(),
         $scroll               = $(settings.scrollContext),
+        $container,
         $context,
 
         selector              = $module.selector || '',
@@ -66,6 +66,7 @@ module.exports = function(parameters) {
 
         initialize: function() {
 
+          module.determineContainer();
           module.determineContext();
           module.verbose('Initializing sticky', settings, $container);
 
@@ -111,7 +112,7 @@ module.exports = function(parameters) {
             observer = new MutationObserver(function(mutations) {
               clearTimeout(module.timer);
               module.timer = setTimeout(function() {
-                module.verbose('DOM tree modified, updating sticky menu');
+                module.verbose('DOM tree modified, updating sticky menu', mutations);
                 module.refresh();
               }, 100);
             });
@@ -125,6 +126,10 @@ module.exports = function(parameters) {
             });
             module.debug('Setting up mutation observer', observer);
           }
+        },
+
+        determineContainer: function() {
+          $container = $module.offsetParent();
         },
 
         determineContext: function() {
@@ -177,7 +182,7 @@ module.exports = function(parameters) {
           },
           scroll: function() {
             requestAnimationFrame(function() {
-              $scroll.trigger('scrollchange' + eventNamespace, $scroll.scrollTop() );
+              $scroll.triggerHandler('scrollchange' + eventNamespace, $scroll.scrollTop() );
             });
           },
           scrollchange: function(event, scrollPosition) {
@@ -188,8 +193,11 @@ module.exports = function(parameters) {
 
         refresh: function(hardRefresh) {
           module.reset();
+          if(!settings.context) {
+            module.determineContext();
+          }
           if(hardRefresh) {
-            $container = $module.offsetParent();
+            module.determineContainer();
           }
           module.save.positions();
           module.stick();
@@ -200,7 +208,7 @@ module.exports = function(parameters) {
           sticky: function() {
             var
               $element = $('<div/>'),
-              element = $element.get()
+              element = $element[0]
             ;
             $element.addClass(className.supported);
             return($element.css('position').match('sticky'));
@@ -210,6 +218,9 @@ module.exports = function(parameters) {
         save: {
           lastScroll: function(scroll) {
             module.lastScroll = scroll;
+          },
+          elementScroll: function(scroll) {
+            module.elementScroll = scroll;
           },
           positions: function() {
             var
@@ -229,6 +240,9 @@ module.exports = function(parameters) {
                 offset        : $context.offset(),
                 height        : $context.outerHeight(),
                 bottomPadding : parseInt($context.css('padding-bottom'), 10)
+              },
+              container = {
+                height: $container.outerHeight()
               }
             ;
             module.cache = {
@@ -282,6 +296,9 @@ module.exports = function(parameters) {
             ;
           },
           currentElementScroll: function() {
+            if(module.elementScroll) {
+              return module.elementScroll;
+            }
             return ( module.is.top() )
               ? Math.abs(parseInt($module.css('top'), 10))    || 0
               : Math.abs(parseInt($module.css('bottom'), 10)) || 0
@@ -296,8 +313,7 @@ module.exports = function(parameters) {
               delta          = module.get.scrollChange(scroll),
               maxScroll      = (element.height - window.height + settings.offset),
               elementScroll  = module.get.currentElementScroll(),
-              possibleScroll = (elementScroll + delta),
-              elementScroll
+              possibleScroll = (elementScroll + delta)
             ;
             if(module.cache.fits || possibleScroll < 0) {
               elementScroll = 0;
@@ -313,6 +329,12 @@ module.exports = function(parameters) {
         },
 
         remove: {
+          lastScroll: function() {
+            delete module.lastScroll;
+          },
+          elementScroll: function(scroll) {
+            delete module.elementScroll;
+          },
           offset: function() {
             $module.css('margin-top', '');
           }
@@ -321,7 +343,9 @@ module.exports = function(parameters) {
         set: {
           offset: function() {
             module.verbose('Setting offset on element', settings.offset);
-            $module.css('margin-top', settings.offset);
+            $module
+              .css('margin-top', settings.offset)
+            ;
           },
           containerSize: function() {
             var
@@ -330,10 +354,10 @@ module.exports = function(parameters) {
             if(tagName === 'HTML' || tagName == 'body') {
               // this can trigger for too many reasons
               //module.error(error.container, tagName, $module);
-              $container = $module.offsetParent();
+              module.determineContainer();
             }
             else {
-              if( Math.abs($container.height() - module.cache.context.height) > 5) {
+              if( Math.abs($container.outerHeight() - module.cache.context.height) > settings.jitter) {
                 module.debug('Context has padding, specifying exact height for container', module.cache.context.height);
                 $container.css({
                   height: module.cache.context.height
@@ -341,8 +365,19 @@ module.exports = function(parameters) {
               }
             }
           },
+          minimumSize: function() {
+            var
+              element   = module.cache.element
+            ;
+            $container
+              .css('min-height', element.height)
+            ;
+          },
           scroll: function(scroll) {
             module.debug('Setting scroll on element', scroll);
+            if(module.elementScroll == scroll) {
+              return;
+            }
             if( module.is.top() ) {
               $module
                 .css('bottom', '')
@@ -414,17 +449,14 @@ module.exports = function(parameters) {
             elementVisible = (element.height !== 0)
           ;
 
-          // save current scroll for next run
-          module.save.lastScroll(scroll.top);
-
           if(elementVisible) {
 
             if( module.is.initialPosition() ) {
-              if(scroll.top >= context.bottom) {
+              if(scroll.top > context.bottom) {
                 module.debug('Element bottom of container');
                 module.bindBottom();
               }
-              else if(scroll.top >= element.top) {
+              else if(scroll.top > element.top) {
                 module.debug('Element passed, fixing element to page');
                 module.fixTop();
               }
@@ -482,15 +514,21 @@ module.exports = function(parameters) {
               }
             }
           }
+
+          // save current scroll for next run
+          module.save.lastScroll(scroll.top);
+          module.save.elementScroll(elementScroll);
         },
 
         bindTop: function() {
           module.debug('Binding element to top of parent container');
           module.remove.offset();
           $module
-            .css('left' , '')
-            .css('top' , '')
-            .css('margin-bottom' , '')
+            .css({
+              left         : '',
+              top          : '',
+              marginBottom : ''
+            })
             .removeClass(className.fixed)
             .removeClass(className.bottom)
             .addClass(className.bound)
@@ -503,9 +541,11 @@ module.exports = function(parameters) {
           module.debug('Binding element to bottom of parent container');
           module.remove.offset();
           $module
-            .css('left' , '')
-            .css('top' , '')
-            .css('margin-bottom' , module.cache.context.bottomPadding)
+            .css({
+              left         : '',
+              top          : '',
+              marginBottom : module.cache.context.bottomPadding
+            })
             .removeClass(className.fixed)
             .removeClass(className.top)
             .addClass(className.bound)
@@ -523,10 +563,14 @@ module.exports = function(parameters) {
 
         fixTop: function() {
           module.debug('Fixing element to top of page');
+          module.set.minimumSize();
           module.set.offset();
           $module
-            .css('left', module.cache.element.left)
-            .css('bottom' , '')
+            .css({
+              left         : module.cache.element.left,
+              bottom       : '',
+              marginBottom : ''
+            })
             .removeClass(className.bound)
             .removeClass(className.bottom)
             .addClass(className.fixed)
@@ -537,10 +581,14 @@ module.exports = function(parameters) {
 
         fixBottom: function() {
           module.debug('Sticking element to bottom of page');
+          module.set.minimumSize();
           module.set.offset();
           $module
-            .css('left', module.cache.element.left)
-            .css('bottom' , '')
+            .css({
+              left         : module.cache.element.left,
+              bottom       : '',
+              marginBottom : ''
+            })
             .removeClass(className.bound)
             .removeClass(className.top)
             .addClass(className.fixed)
@@ -576,6 +624,7 @@ module.exports = function(parameters) {
           module.unfix();
           module.resetCSS();
           module.remove.offset();
+          module.remove.lastScroll();
         },
 
         resetCSS: function() {
@@ -773,23 +822,44 @@ module.exports.settings = {
   namespace      : 'sticky',
 
   debug          : false,
-  verbose        : false,
-  performance    : false,
+  verbose        : true,
+  performance    : true,
 
+  // whether to stick in the opposite direction on scroll up
   pushing        : false,
+
   context        : false,
+
+  // Context to watch scroll events
   scrollContext  : window,
 
+  // Offset to adjust scroll
   offset         : 0,
+
+  // Offset to adjust scroll when attached to bottom of screen
   bottomOffset   : 0,
 
-  observeChanges : true,
+  jitter         : 5, // will only set container height if difference between context and container is larger than this number
 
+  // Whether to automatically observe changes with Mutation Observers
+  observeChanges : false,
+
+  // Called when position is recalculated
   onReposition   : function(){},
+
+  // Called on each scroll
   onScroll       : function(){},
+
+  // Called when element is stuck to viewport
   onStick        : function(){},
+
+  // Called when element is unstuck from viewport
   onUnstick      : function(){},
+
+  // Called when element reaches top of context
   onTop          : function(){},
+
+  // Called when element reaches bottom of context
   onBottom       : function(){},
 
   error         : {
