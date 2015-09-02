@@ -2,7 +2,7 @@
 Package.describe({
   name    : 'semantic:ui-sticky',
   summary : 'Semantic UI - Sticky: Single component release',
-  version : '2.0.8',
+  version : '2.0.7',
   git     : 'git://github.com/Semantic-Org/UI-Sticky.git',
 });
 
