@@ -1,3 +1,7 @@
+### Version 2.1.7 - Dec 19, 2015
+
+- **Sticky** - Renames variables used to account for scroll offset internally for greater code clarity
+
 ### Version 2.1.5 - Nov 1, 2015
 
 - **Sticky** - Fixes bug where sticky would stick at incorrect times when using a different scroll container than `body` and scrollTop is not 0 on page load.
