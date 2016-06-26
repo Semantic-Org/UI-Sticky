@@ -1,17 +1,23 @@
 /*!
- * # Semantic UI 2.1.7 - Sticky
+ * # Semantic UI 2.2.0 - Sticky
  * http://github.com/semantic-org/semantic-ui/
  *
  *
- * Copyright 2015 Contributors
  * Released under the MIT license
  * http://opensource.org/licenses/MIT
  *
  */
 
-;(function ( $, window, document, undefined ) {
+;(function ($, window, document, undefined) {
 
 "use strict";
+
+window = (typeof window != 'undefined' && window.Math == Math)
+  ? window
+  : (typeof self != 'undefined' && self.Math == Math)
+    ? self
+    : Function('return this')()
+;
 
 var _module = module;
 module.exports = function(parameters) {
@@ -58,6 +64,8 @@ module.exports = function(parameters) {
           || function(callback) { setTimeout(callback, 0); },
 
         element         = this,
+
+        documentObserver,
         observer,
         module
       ;
@@ -91,6 +99,9 @@ module.exports = function(parameters) {
         destroy: function() {
           module.verbose('Destroying previous instance');
           module.reset();
+          if(documentObserver) {
+            documentObserver.disconnect();
+          }
           if(observer) {
             observer.disconnect();
           }
@@ -105,22 +116,18 @@ module.exports = function(parameters) {
         },
 
         observeChanges: function() {
-          var
-            context = $context[0]
-          ;
           if('MutationObserver' in window) {
-            observer = new MutationObserver(function(mutations) {
-              clearTimeout(module.timer);
-              module.timer = setTimeout(function() {
-                module.verbose('DOM tree modified, updating sticky menu', mutations);
-                module.refresh();
-              }, 100);
+            documentObserver = new MutationObserver(module.event.documentChanged);
+            observer         = new MutationObserver(module.event.changed);
+            documentObserver.observe(document, {
+              childList : true,
+              subtree   : true
             });
             observer.observe(element, {
               childList : true,
               subtree   : true
             });
-            observer.observe(context, {
+            observer.observe($context[0], {
               childList : true,
               subtree   : true
             });
@@ -172,6 +179,25 @@ module.exports = function(parameters) {
         },
 
         event: {
+          changed: function(mutations) {
+            clearTimeout(module.timer);
+            module.timer = setTimeout(function() {
+              module.verbose('DOM tree modified, updating sticky menu', mutations);
+              module.refresh();
+            }, 100);
+          },
+          documentChanged: function(mutations) {
+            [].forEach.call(mutations, function(mutation) {
+              if(mutation.removedNodes) {
+                [].forEach.call(mutation.removedNodes, function(node) {
+                  if(node == element || $(node).find(element).length > 0) {
+                    module.debug('Element removed from DOM, tearing down events');
+                    module.destroy();
+                  }
+                });
+              }
+            });
+          },
           load: function() {
             module.verbose('Page contents finished loading');
             requestAnimationFrame(module.refresh);
@@ -644,7 +670,7 @@ module.exports = function(parameters) {
         },
 
         reset: function() {
-          module.debug('Reseting elements position');
+          module.debug('Resetting elements position');
           module.unbind();
           module.unfix();
           module.resetCSS();
@@ -689,7 +715,7 @@ module.exports = function(parameters) {
           }
         },
         debug: function() {
-          if(settings.debug) {
+          if(!settings.silent && settings.debug) {
             if(settings.performance) {
               module.performance.log(arguments);
             }
@@ -700,7 +726,7 @@ module.exports = function(parameters) {
           }
         },
         verbose: function() {
-          if(settings.verbose && settings.debug) {
+          if(!settings.silent && settings.verbose && settings.debug) {
             if(settings.performance) {
               module.performance.log(arguments);
             }
@@ -711,8 +737,10 @@ module.exports = function(parameters) {
           }
         },
         error: function() {
-          module.error = Function.prototype.bind.call(console.error, console, settings.name + ':');
-          module.error.apply(console, arguments);
+          if(!settings.silent) {
+            module.error = Function.prototype.bind.call(console.error, console, settings.name + ':');
+            module.error.apply(console, arguments);
+          }
         },
         performance: {
           log: function(message) {
@@ -846,6 +874,7 @@ _module.exports.settings = {
   name           : 'Sticky',
   namespace      : 'sticky',
 
+  silent         : false,
   debug          : false,
   verbose        : true,
   performance    : true,
@@ -889,7 +918,7 @@ _module.exports.settings = {
 
   error         : {
     container      : 'Sticky element must be inside a relative container',
-    visible        : 'Element is hidden, you must call refresh after element becomes visible',
+    visible        : 'Element is hidden, you must call refresh after element becomes visible. Use silent setting to surpress this warning in production.',
     method         : 'The method you called is not defined.',
     invalidContext : 'Context specified does not exist',
     elementSize    : 'Sticky element is larger than its container, cannot create sticky.'

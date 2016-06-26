@@ -1,3 +1,9 @@
+### Version 2.2.0 - June 26, 2016
+
+- **All UI** - Added new setting `silent` to all modules which allows you to disable all console output including errors. This can be useful for preventing known errors, like a popup which cannot place itself on screen, or `sticky` content which initializes before it is visible [#3713](https://github.com/Semantic-Org/Semantic-UI/issues/3713)
+- **Image** - `transition hidden image` now shows correctly as `visibility: hidden;` and not `display: none`. This will allow `offset` with `visibility` and `sticky` to work more seamlessly. `hidden image` will still remain `display: none;`
+- **Sticky/Visibility** -  Added mutation observer to teardown element with `destroy` if removed from DOM context, fixing a possible memory leak
+
 ### Version 2.1.7 - Dec 19, 2015
 
 - **Sticky** - Renames variables used to account for scroll offset internally for greater code clarity
@@ -14,7 +20,7 @@
 ### Version 2.0.4 - July 17, 2015
 
 - **Sticky** - Fixed `sticky` element that cannot fit in viewport not scrolling correctly when fixed to viewport [#2605](https://github.com/Semantic-Org/Semantic-UI/issues/2605)
-- **Sticky** - Fixed `sticky` content jumping from `fixed` to `bount bottom` when scroll position has surpassed bottom of container during page refresh.
+- **Sticky** - Fixed `sticky` content jumping from `fixed` to `bound bottom` when scroll position has surpassed bottom of container during page refresh.
 - **Sticky** - Sticky no longer uses `bottomPadding` to determine bottom edge of container.
 
 ### Version 2.0.0 - June 30, 2015
