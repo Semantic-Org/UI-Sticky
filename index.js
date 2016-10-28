@@ -1,5 +1,5 @@
 /*!
- * # Semantic UI 2.2.3 - Sticky
+ * # Semantic UI 2.2.6 - Sticky
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -136,7 +136,12 @@ module.exports = function(parameters) {
         },
 
         determineContainer: function() {
-          $container = $module.offsetParent();
+          if(settings.container) {
+            $container = $(settings.container);
+          }
+          else {
+            $container = $module.offsetParent();
+          }
         },
 
         determineContext: function() {
@@ -883,6 +888,7 @@ _module.exports.settings = {
   pushing        : false,
 
   context        : false,
+  container      : false,
 
   // Context to watch scroll events
   scrollContext  : window,
