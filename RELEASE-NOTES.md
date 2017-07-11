@@ -1,3 +1,10 @@
+### Version 2.2.11 - July 11, 2017
+
+- **Sticky** - Fix issue where sticky would cause page to shift when `context` height was determined by sticky's height in `position: static;`  [#3430](https://github.com/Semantic-Org/Semantic-UI/issues/3430)
+- **Sticky** - Sticky now includes a new setting `setSize` to determine whether it should set content size on stick to the size before sticking (fixed content uses different positioning system) [#4360](https://github.com/Semantic-Org/Semantic-UI/issues/4360)
+- **Sticky** - Fixed edge case where using `offset` setting, sticky element would not internally scroll if the rail contents (without the offset setting) would fit on screen
+- **Sticky** - Fixed an issue where `ui sticky` used with a percentage based width would not resize properly if the content size of container changed when "stuck" [#4360](https://github.com/Semantic-Org/Semantic-UI/issues/4360)
+
 ### Version 2.2.5 - October, 27, 2016
 
 -  **Sticky** - Adds `container` setting. This can be used to specify the offsetParent of the sticky element and avoid having to calculate on initialization (improving performance)
