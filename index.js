@@ -1,5 +1,5 @@
 /*!
- * # Semantic UI 2.4.0 - Sticky
+ * # Semantic UI 2.5.0 - Sticky
  * http://github.com/semantic-org/semantic-ui/
  *
  *
@@ -403,6 +403,18 @@ module.exports = function(parameters) {
               module.determineContainer();
             }
             else {
+              var tallestHeight = Math.max(module.cache.context.height, module.cache.element.height);
+              if(tallestHeight - $container.outerHeight() > settings.jitter) {
+                module.debug('Context is taller than container. Specifying exact height for container', module.cache.context.height);
+                $container.css({
+                  height: tallestHeight,
+                });
+              }
+              else {
+                $container.css({
+                  height: '',
+                });
+              }
               if( Math.abs($container.outerHeight() - module.cache.context.height) > settings.jitter) {
                 module.debug('Context has padding, specifying exact height for container', module.cache.context.height);
                 $container.css({
@@ -439,7 +451,7 @@ module.exports = function(parameters) {
           },
           size: function() {
             if(module.cache.element.height !== 0 && module.cache.element.width !== 0) {
-              element.style.setProperty('width',  module.cache.element.width  + 'px', 'important');
+              element.style.setProperty('width', module.cache.element.width  + 'px', 'important');
               element.style.setProperty('height', module.cache.element.height + 'px', 'important');
             }
           }
@@ -502,7 +514,7 @@ module.exports = function(parameters) {
                 module.bindBottom();
               }
               else if(scroll.top > element.top) {
-                if( (element.height + scroll.top - elementScroll) >= context.bottom ) {
+                if((element.height + scroll.top - elementScroll) >= context.bottom  && element.height < context.height) {
                   module.debug('Initial element position is bottom of container');
                   module.bindBottom();
                 }
@@ -581,6 +593,9 @@ module.exports = function(parameters) {
         bindTop: function() {
           module.debug('Binding element to top of parent container');
           module.remove.offset();
+          if(settings.setSize) {
+            module.set.size();
+          }
           $module
             .css({
               left         : '',
@@ -598,6 +613,9 @@ module.exports = function(parameters) {
         bindBottom: function() {
           module.debug('Binding element to bottom of parent container');
           module.remove.offset();
+          if(settings.setSize) {
+            module.set.size();
+          }
           $module
             .css({
               left         : '',

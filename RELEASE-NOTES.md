@@ -1,3 +1,10 @@
+### Version 2.5.0 - Oct 6, 2022
+
+- **Sticky** - Adds new example for sticky to highlight behavior when sticky/context height varies
+- **Dropdown** - Fix issue where dropdown menu could not open to right when in `right menu` inside a `ui menu` (See examples/sticky.html) for use-case
+- **Sticky** - Fix issue where element might be `bound bottom` (fixed to bottom of context) if the sticky element is larger than the context
+- **Sticky** - Fix issue when sticky size is larger than context size caused context `min-height` not to be set correctly.
+
 ### Version 2.2.11 - July 11, 2017
 
 - **Sticky** - Fix issue where sticky would cause page to shift when `context` height was determined by sticky's height in `position: static;`  [#3430](https://github.com/Semantic-Org/Semantic-UI/issues/3430)
